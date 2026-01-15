@@ -146,6 +146,7 @@ def process_file():
 def main_process(queue):
     try:
         queue.put({'type': 'status', 'text': 'Iniciando processo...'})
+        queue.put({'type': 'progress', 'value': 0})
         df = pd.read_excel(EXCEL_FILE, sheet_name="Base")
         
         # Normalize numbers
@@ -205,7 +206,7 @@ def main_process(queue):
                     queue.put({'type': 'log', 'text': f"{origin_name} - {df.at[idx, 'Destino']} - {df.at[idx, 'distance_km']} km"})
 
                 current_step += 1
-                progress = (current_step / total_chunks) * 100
+                progress = int((current_step / total_chunks) * 100)
                 queue.put({'type': 'progress', 'value': progress})
                 queue.put({'type': 'log', 'text': f"Processing {origin_name} ({current_step}/{total_chunks})"})
 
@@ -216,6 +217,7 @@ def main_process(queue):
                 time.sleep(2)  # respect 40 requests per minute limit
 
         df.to_excel(OUTPUT_FILE, index=False)
+        queue.put({'type': 'progress', 'value': 100})
         queue.put({'type': 'log', 'text': f"Finished! Saved as {OUTPUT_FILE}"})
         queue.put({'type': 'status', 'text': 'Processo concluído.'})
         queue.put({'type': 'done'})
@@ -234,6 +236,7 @@ def update_gui(q, status_label, progress_bar, log_text, button, root):
             status_label.config(text=msg['text'])
         elif msg['type'] == 'progress':
             progress_bar['value'] = msg['value']
+            root.update_idletasks()
         elif msg['type'] == 'log':
             log_text.insert(tk.END, msg['text'] + '\n')
             log_text.see(tk.END)
@@ -281,7 +284,7 @@ class App:
         self.status_label = ttk.Label(main_frame, text="Pronto para iniciar.", font=("Segoe UI", 11), foreground=stellantis_blue)
         self.status_label.pack(pady=(2, 5), fill=tk.X)
         
-        self.progress_bar = ttk.Progressbar(main_frame, orient='horizontal', length=400, mode='determinate')
+        self.progress_bar = ttk.Progressbar(main_frame, orient='horizontal', length=400, mode='determinate', maximum=100)
         self.progress_bar.pack(pady=10, fill=tk.X)
         
         button_frame = ttk.Frame(main_frame)

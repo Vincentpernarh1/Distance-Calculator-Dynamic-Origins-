@@ -50,9 +50,16 @@ This Python application calculates distances between origins and destinations fo
 
 4. The application will process the data and display progress. Once complete, it will save the results to `routes_with_distance.xlsx` with an additional `distance_km` column.
 
+## Testing
+
+A simple test script `test.py` is provided to verify the API connection. Run it with:
+```
+python test.py
+```
+
 ## Configuration
 
-- `CHUNK_SIZE`: Number of destinations processed per API call (default: 2000)
+- `CHUNK_SIZE`: Number of destinations processed per API call (default: 50)
 - `MAX_RETRIES`: Maximum number of API retry attempts (default: 5)
 - `BACKOFF_FACTOR`: Exponential backoff factor for retries (default: 2)
 
